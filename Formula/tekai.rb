@@ -1,8 +1,8 @@
 class Tekai < Formula
   desc "Self-contained, fidelity-preserving LaTeX engine and build system"
   homepage "https://github.com/NicoNekoru/tekai"
-  url "https://github.com/NicoNekoru/tekai/archive/refs/tags/v0.3.0.tar.gz"
-  sha256 "aab164f7dc9d8b44b47312ff0d4b3884f992bcb6f7c9a44efa8b83f3f713a232"
+  url "https://github.com/NicoNekoru/tekai/archive/refs/tags/v0.4.0.tar.gz"
+  sha256 "62f1693d360033e4357d518b626bef138ee33eed66f56d7eed10e08c9ca5ebb7"
   license "MIT"
   head "https://github.com/NicoNekoru/tekai.git", branch: "main"
 
@@ -19,6 +19,14 @@ class Tekai < Formula
 
     ENV["TEKAI_ENGINE_CACHE"] = testpath/"cache"
     ENV["PATH"] = ""
+    (testpath/"format.tex").write "Inline $x$.\n"
+    assert_match(/"fixes_available":\s*2/,
+                 shell_output("#{bin}/tekai format format.tex --check --report-json", 1))
+    assert_equal "Inline $x$.\n", (testpath/"format.tex").read
+    system bin/"tekai", "format", "format.tex", "--report-json"
+    assert_equal "Inline \\(x\\).\n", (testpath/"format.tex").read
+    system bin/"tekai", "format", "format.tex", "--check", "--report-json"
+
     (testpath/"main.tex").write <<~'EOS'
       \documentclass{article}
       \usepackage{eso-pic,fancyhdr,times}
