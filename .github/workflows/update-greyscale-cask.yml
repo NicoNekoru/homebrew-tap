@@ -1,0 +1,90 @@
+name: update greyscale cask
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Published release version, with or without leading v"
+        required: true
+        type: string
+  repository_dispatch:
+    types: [greyscale-schedule-release]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-cask
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: update greyscale-schedule cask
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      APP_REPO: NicoNekoru/GreyscaleSchedule
+      CASK_FILE: Casks/greyscale-schedule.rb
+      RAW_VERSION: ${{ github.event.inputs.version || github.event.client_payload.version }}
+    steps:
+      - name: Check out tap
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Validate version and published release
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${RAW_VERSION#v}"
+          if ! [[ "$version" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
+            printf 'Unexpected release version\n' >&2
+            exit 1
+          fi
+          tag="v$version"
+          if [ "$(gh release view "$tag" --repo "$APP_REPO" --json isDraft --jq .isDraft)" != false ]; then
+            printf 'Release must be published before updating the cask\n' >&2
+            exit 1
+          fi
+          printf 'RELEASE_VERSION=%s\nRELEASE_TAG=%s\n' "$version" "$tag" >> "$GITHUB_ENV"
+
+      - name: Download release and calculate checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          asset="GreyscaleSchedule-v${RELEASE_VERSION}-macos-arm64.dmg"
+          mkdir -p release-asset
+          gh release download "$RELEASE_TAG" --repo "$APP_REPO" \
+            --pattern "$asset" --dir release-asset
+          sha256="$(sha256sum "release-asset/$asset" | awk '{print $1}')"
+          if ! [[ "$sha256" =~ ^[0-9a-f]{64}$ ]]; then
+            printf 'Invalid release checksum\n' >&2
+            exit 1
+          fi
+          printf 'RELEASE_SHA256=%s\n' "$sha256" >> "$GITHUB_ENV"
+
+      - name: Update version and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby -0777 -i -pe '
+            version = ENV.fetch("RELEASE_VERSION")
+            sha256 = ENV.fetch("RELEASE_SHA256")
+            unless $_.sub!(/^  version "[^"]+"$/, "  version \"#{version}\"") &&
+                   $_.sub!(/^  sha256 "[0-9a-f]{64}"$/, "  sha256 \"#{sha256}\"")
+              abort "Expected version and checksum fields were not found"
+            end
+          ' "$CASK_FILE"
+          ruby -c "$CASK_FILE"
+
+      - name: Commit cask update
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- "$CASK_FILE"; then
+            printf 'Cask already matches %s\n' "$RELEASE_TAG"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$CASK_FILE"
+          git commit -m "greyscale-schedule ${RELEASE_VERSION}"
+          git push
