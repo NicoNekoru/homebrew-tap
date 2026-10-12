@@ -1,6 +1,6 @@
 cask "greyscale-schedule" do
-  version "1.9.1"
-  sha256 "d53eb72e09d968aadf19c3ab35be9db809445e124b2873942011422fa86c78d2"
+  version "1.10.0"
+  sha256 "11739e895ef83464f88679f2cf0b553e6c876b817436316da07e02ec0b86d807"
 
   url "https://github.com/NicoNekoru/GreyscaleSchedule/releases/download/v#{version}/GreyscaleSchedule-v#{version}-macos-arm64.dmg"
   name "Greyscale Schedule"
