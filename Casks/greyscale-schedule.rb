@@ -35,11 +35,15 @@ cask "greyscale-schedule" do
       ]
 
   caveats <<~EOS
-    Open Greyscale Schedule once and click Save Schedule.
-    Click Install / Refresh Control to add the Control Centre tile.
+    Open Greyscale Schedule once, choose a schedule and click Save Schedule.
+    Click Add Control if the tile is missing. Refresh Control is under
+    Setup and maintenance.
     Later tile clicks stay windowless.
 
-    For complete removal, use Uninstall in the app before
+    After upgrading, prepare the helper without changing your saved schedule.
+    "#{appdir}/Greyscale Schedule.app/Contents/MacOS/Greyscale Schedule" --install-helper
+
+    For complete removal, use Uninstall under Setup and maintenance before
     running brew uninstall --cask --zap greyscale-schedule.
   EOS
 end
