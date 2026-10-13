@@ -27,8 +27,8 @@
 # direct downloads otherwise produce.
 
 cask "apfs-fastindex" do
-  version "0.3.2"
-  sha256 "e6893af45856a8153f9a3e9325f4a7b32610e0ceb351e4ba33cec4b40689f114"
+  version "0.3.3"
+  sha256 "f0756a8d598da736de2a994fb58060e5cecbd25ea8c792dd1db48517b12ded8e"
 
   url "https://github.com/NicoNekoru/apfs-fastindex/releases/download/v#{version}/ApfsFastindex-v#{version}-macos-arm64.dmg"
   name "apfs-fastindex"
