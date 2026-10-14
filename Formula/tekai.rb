@@ -1,9 +1,9 @@
 class Tekai < Formula
   desc "Self-contained, fidelity-preserving LaTeX engine and build system"
   homepage "https://github.com/NicoNekoru/tekai"
-  url "https://github.com/NicoNekoru/tekai/archive/refs/tags/v0.5.0.tar.gz"
-  sha256 "b6d0866d665e4abe0b867f7cdf229b7495e273638c5d3ad1489230d19079ce26"
-  license "MIT"
+  url "https://github.com/NicoNekoru/tekai/archive/refs/tags/v0.6.0.tar.gz"
+  sha256 "e0dd63b0614a7c4e1f85178a21d040acf6f4f84f97beaaca5bac4db3bdb2e77d"
+  license "GPL-2.0-or-later"
   head "https://github.com/NicoNekoru/tekai.git", branch: "main"
 
   depends_on "rust" => :build
