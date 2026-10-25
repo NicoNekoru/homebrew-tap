@@ -1,8 +1,8 @@
 class Tekai < Formula
   desc "Self-contained, fidelity-preserving LaTeX engine and build system"
   homepage "https://github.com/NicoNekoru/tekai"
-  url "https://github.com/NicoNekoru/tekai/archive/refs/tags/v0.6.0.tar.gz"
-  sha256 "e0dd63b0614a7c4e1f85178a21d040acf6f4f84f97beaaca5bac4db3bdb2e77d"
+  url "https://github.com/NicoNekoru/tekai/archive/refs/tags/v0.6.1.tar.gz"
+  sha256 "c7e88851573581f0e7688a6854ad59f7fc6f8a88c328c8183e540daa76fa8ba7"
   license "GPL-2.0-or-later"
   head "https://github.com/NicoNekoru/tekai.git", branch: "main"
 
@@ -16,6 +16,13 @@ class Tekai < Formula
   test do
     assert_match "tekai #{version}", shell_output("#{bin}/tekai --version")
     assert_match "self-contained engine", shell_output("#{bin}/tekai --help")
+
+    system bin/"tekai", "init", "defaults.toml"
+    defaults = (testpath/"defaults.toml").read
+    assert_match "indent_size = 4", defaults
+    assert_match 'indent_style = "tabs"', defaults
+    assert_match 'prose_wrap = "unwrapped"', defaults
+    refute_match(/^\s*max_line_length\s*=/, defaults)
 
     ENV["TEKAI_ENGINE_CACHE"] = testpath/"cache"
     ENV["PATH"] = ""
@@ -38,6 +45,11 @@ class Tekai < Formula
       system bin/"tekai", "format", "format.tex", "--report-json"
       assert_equal "Inline \\(x\\).\n", (testpath/"paper/format.tex").read
       system bin/"tekai", "format", "format.tex", "--check", "--report-json"
+
+      (testpath/"paper/tabs.tex").write "\\begin{itemize}\n    \\item Inline $x$.\n\\end{itemize}\n"
+      system bin/"tekai", "format", "tabs.tex", "--report-json"
+      assert_equal "\\begin{itemize}\n\t\\item Inline \\(x\\).\n\\end{itemize}\n",
+                   (testpath/"paper/tabs.tex").read
 
       (testpath/"paper/main.tex").write <<~'EOS'
         \documentclass{article}
